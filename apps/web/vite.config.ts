@@ -10,10 +10,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/companies": { target: "http://localhost:3000", changeOrigin: true },
-      "/approvals": { target: "http://localhost:3000", changeOrigin: true },
-      "/templates": { target: "http://localhost:3000", changeOrigin: true },
-      "/health": { target: "http://localhost:3000", changeOrigin: true },
+      "/api": { target: "http://localhost:3000", changeOrigin: true, rewrite: (path) => path.replace(/^\/api/, '') },
     },
   },
 });
