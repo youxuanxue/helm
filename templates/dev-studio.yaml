@@ -1,0 +1,36 @@
+# Helm 技术研发公司模板
+apiVersion: opc/company/v1
+kind: CompanySpec
+spec:
+  identity:
+    name: 技术研发工作室
+    id: dev-studio-template
+  mission:
+    statement: 交付高质量代码与 PR，支撑产品快速迭代
+  target_audience:
+    summary: 创业团队与产品经理
+    segments:
+      - id: product
+        name: 产品经理
+  goals:
+    - id: g1
+      level: company
+      title: 稳定交付可合并 PR
+      key_results:
+        - title: 周均 5 个可合并 PR
+          metric: pr_count
+          target: "5"
+          unit: 个
+  deliverables:
+    - id: pr
+      type: pr_draft
+      name: PR 草稿
+      format: { primary: diff }
+      unit: 个
+  quality_standards:
+    principles: [通过测试, 符合 lint]
+    by_deliverable_type:
+      code:
+        - criterion: 通过指定测试套件
+        - criterion: 符合项目 lint 规则
+    baseline: [{ criterion: 不包含敏感信息 }]

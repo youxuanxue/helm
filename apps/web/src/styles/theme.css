@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --helm-bg: #0d1117;
+  --helm-surface: #161b22;
+  --helm-border: #30363d;
+  --helm-muted: #8b949e;
+  --helm-accent: #58a6ff;
+  --helm-success: #3fb950;
+  --helm-warning: #d29922;
+  --helm-error: #f85149;
+}

@@ -1,0 +1,37 @@
+# Helm 内容创作公司模板
+# 选此模板 = 0 填写，秒开
+apiVersion: opc/company/v1
+kind: CompanySpec
+spec:
+  identity:
+    name: 星辰内容工作室
+    id: content-studio-template
+  mission:
+    statement: 为 SaaS 品牌创作高质量 B2B 内容，月产 20 篇
+    vision: 成为最懂 B2B 品牌的内容 partner
+  target_audience:
+    summary: B 轮及以上 SaaS 公司市场团队
+    segments:
+      - id: saas_marketing
+        name: SaaS 市场团队
+        attributes: [{ company_stage: "B 轮及以上" }]
+  goals:
+    - id: g1
+      level: company
+      title: 建立稳定内容产能
+      key_results:
+        - title: 月产 20 篇 B2B 文章
+          metric: article_count
+          target: "20"
+          unit: 篇
+  deliverables:
+    - id: article_b2b
+      type: article
+      name: B2B 营销文章
+      format: { primary: markdown }
+      unit: 篇
+  quality_standards:
+    principles: [事实准确, 符合受众, 无敏感信息]
+    by_deliverable_type:
+      article: [{ criterion: "字数 >= 500", validator: length }]
+    baseline: [{ criterion: 不包含敏感信息 }]

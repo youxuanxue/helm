@@ -1,0 +1,17 @@
+# Helm 空白公司模板
+# 选此模板时需填写：name, mission, target_audience
+apiVersion: opc/company/v1
+kind: CompanySpec
+spec:
+  identity:
+    name: ""
+    id: ""
+  mission:
+    statement: ""
+  target_audience:
+    summary: ""
+  goals: []
+  deliverables: []
+  quality_standards:
+    principles: []
+    baseline: []

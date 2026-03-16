@@ -1,0 +1,16 @@
+{
+  "name": "helm",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @helm/api --filter @helm/web run dev --parallel",
+    "build": "pnpm -r run build",
+    "db:migrate": "pnpm --filter @helm/db run migrate",
+    "db:generate": "pnpm --filter @helm/db run generate"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
