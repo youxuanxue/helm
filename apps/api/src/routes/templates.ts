@@ -1,10 +1,12 @@
 import { Hono } from "hono";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { validateSafeId } from "@helm/shared";
 
 export const templates = new Hono();
 
-const TEMPLATES_DIR = join(process.cwd(), "..", "..", "templates");
+const TEMPLATES_DIR = fileURLToPath(new URL("../../../../templates", import.meta.url));
 
 function listTemplates(): { id: string; name: string }[] {
   try {
@@ -34,7 +36,9 @@ templates.get("/", (c) => {
 
 templates.get("/:id", (c) => {
   const id = c.req.param("id");
-  if (id.includes("..") || id.includes("/")) {
+  try {
+    validateSafeId(id, "template_id");
+  } catch {
     return c.json({ error: "Invalid template id" }, 400);
   }
   try {

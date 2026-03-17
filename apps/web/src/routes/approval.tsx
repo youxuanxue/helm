@@ -1,12 +1,30 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../lib/api";
+import { TaskGraph, type TaskGraphPayload } from "../components/TaskGraph";
 
 interface ApprovalData {
   id: string;
   type: string;
   status: string;
-  payload: object;
+  payload: object | string;
+}
+
+type ApprovalPayload = {
+  issue_id?: string;
+  demand?: string;
+  task_graph?: TaskGraphPayload;
+};
+
+function parsePayload(payload: object | string): ApprovalPayload {
+  if (typeof payload === "string") {
+    try {
+      return JSON.parse(payload) as ApprovalPayload;
+    } catch {
+      return {};
+    }
+  }
+  return payload as ApprovalPayload;
 }
 
 export function Approval() {
@@ -35,20 +53,17 @@ export function Approval() {
     return <div className="text-helm-muted">加载中…</div>;
   }
 
+  const parsedPayload = parsePayload(approval.payload);
+
   return (
     <div className="space-y-6">
       <Link to={`/company/${id}`} className="inline-block text-sm text-helm-accent hover:underline">
         ← 返回公司
       </Link>
       <h1 className="text-xl font-semibold text-helm-fg">审批任务图</h1>
+      <TaskGraph graph={parsedPayload.task_graph ?? {}} />
       <div className="rounded-lg border border-helm-border bg-helm-surface p-4">
-        <pre className="text-sm text-helm-muted">
-          {JSON.stringify(
-            typeof approval.payload === "string" ? JSON.parse(approval.payload) : approval.payload,
-            null,
-            2
-          )}
-        </pre>
+        <pre className="text-sm text-helm-muted">{JSON.stringify(parsedPayload, null, 2)}</pre>
       </div>
       <div className="flex gap-4">
         <button
