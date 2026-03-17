@@ -9,6 +9,7 @@
     "build": "tsc --noEmit false"
   },
   "dependencies": {
+    "@helm/adapters": "workspace:*",
     "@helm/db": "workspace:*",
     "@helm/shared": "workspace:*"
   },

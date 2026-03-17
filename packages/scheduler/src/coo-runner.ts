@@ -1,6 +1,7 @@
 import { getDb } from "@helm/db";
 import { finishHeartbeatRun, startHeartbeatRun } from "./heartbeat";
 import { scheduleRunnableNodes, summarizeNodeStates } from "./dag-scheduler";
+import { dispatchScheduledNodes, pollRunningNodeExecutions } from "./adapter-dispatch";
 
 export interface CooCycleResult {
   run_id: string;
@@ -19,7 +20,7 @@ export interface CooCycleResult {
   message?: string;
 }
 
-export function runCooCycle(companyId: string, dbPath?: string): CooCycleResult {
+export async function runCooCycle(companyId: string, dbPath?: string): Promise<CooCycleResult> {
   const db = getDb(dbPath);
   const company = db
     .prepare("SELECT id, status, budget_cents FROM companies WHERE id = ?")
@@ -80,6 +81,8 @@ export function runCooCycle(companyId: string, dbPath?: string): CooCycleResult 
 
     const tx = db.transaction(() => scheduleRunnableNodes(db, companyId, runId));
     const scheduled = tx();
+    await dispatchScheduledNodes(db, companyId, scheduled.scheduledNodeIds);
+    const polled = await pollRunningNodeExecutions(db, companyId);
     finishHeartbeatRun(db, runId, "succeed");
     return {
       run_id: runId,
@@ -88,6 +91,10 @@ export function runCooCycle(companyId: string, dbPath?: string): CooCycleResult 
       scheduled_node_ids: scheduled.scheduledNodeIds,
       touched_issue_ids: scheduled.touchedIssueIds,
       node_state_summary: summarizeNodeStates(db, companyId),
+      message:
+        polled.completed_node_ids.length > 0
+          ? `Completed ${polled.completed_node_ids.length} node runtime checks`
+          : undefined,
     };
   } catch (error) {
     finishHeartbeatRun(db, runId, "failed");

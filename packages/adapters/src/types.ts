@@ -43,7 +43,14 @@ export interface Artifact {
 }
 
 export interface RunStatus {
-  state: "submitted" | "working" | "succeed" | "failed" | "cancelled" | "timeout";
+  state:
+    | "submitted"
+    | "working"
+    | "input_required"
+    | "succeed"
+    | "failed"
+    | "cancelled"
+    | "timeout";
   message?: Part[];
   artifacts?: Artifact[];
   error?: { code: string; message: string };

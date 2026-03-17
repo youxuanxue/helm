@@ -1,29 +1,4 @@
-import Database from "better-sqlite3";
-import type DatabaseType from "better-sqlite3";
-import { dirname } from "node:path";
-import { mkdirSync } from "node:fs";
-
-let _db: DatabaseType.Database | null = null;
-
-export function getDb(dbPath?: string): DatabaseType.Database {
-  if (!_db) {
-    const path = dbPath ?? (process.env.HELM_DATA_DIR ? `${process.env.HELM_DATA_DIR}/helm.db` : ":memory:");
-    if (path !== ":memory:") {
-      mkdirSync(dirname(path), { recursive: true });
-    }
-    _db = new Database(path);
-    _db.pragma("journal_mode = WAL");
-  }
-  return _db;
-}
-
-export function initDb(dbPath?: string): DatabaseType.Database {
-  _db = null;
-  return getDb(dbPath);
-}
-
-export const SQL_MIGRATIONS = [
-  `CREATE TABLE IF NOT EXISTS companies (
+CREATE TABLE IF NOT EXISTS companies (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     mission TEXT NOT NULL,
@@ -34,8 +9,9 @@ export const SQL_MIGRATIONS = [
     budget_cents INTEGER,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS company_templates (
+  );
+
+CREATE TABLE IF NOT EXISTS company_templates (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     version TEXT NOT NULL DEFAULT '1.0.0',
@@ -43,8 +19,9 @@ export const SQL_MIGRATIONS = [
     spec TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS agents (
+  );
+
+CREATE TABLE IF NOT EXISTS agents (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     name TEXT NOT NULL,
@@ -56,8 +33,9 @@ export const SQL_MIGRATIONS = [
     status TEXT NOT NULL DEFAULT 'active',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS goals (
+  );
+
+CREATE TABLE IF NOT EXISTS goals (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     title TEXT NOT NULL,
@@ -66,8 +44,9 @@ export const SQL_MIGRATIONS = [
     description TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS projects (
+  );
+
+CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     goal_id TEXT REFERENCES goals(id),
@@ -75,8 +54,9 @@ export const SQL_MIGRATIONS = [
     status TEXT NOT NULL DEFAULT 'active',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS issues (
+  );
+
+CREATE TABLE IF NOT EXISTS issues (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     project_id TEXT,
@@ -88,8 +68,9 @@ export const SQL_MIGRATIONS = [
     demand_payload TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS action_nodes (
+  );
+
+CREATE TABLE IF NOT EXISTS action_nodes (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     issue_id TEXT REFERENCES issues(id),
@@ -108,15 +89,17 @@ export const SQL_MIGRATIONS = [
     last_error TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS action_edges (
+  );
+
+CREATE TABLE IF NOT EXISTS action_edges (
     from_node_id TEXT NOT NULL,
     to_node_id TEXT NOT NULL,
     company_id TEXT NOT NULL REFERENCES companies(id),
     created_at TEXT NOT NULL,
     PRIMARY KEY (from_node_id, to_node_id)
-  )`,
-  `CREATE TABLE IF NOT EXISTS approvals (
+  );
+
+CREATE TABLE IF NOT EXISTS approvals (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     type TEXT NOT NULL,
@@ -126,8 +109,9 @@ export const SQL_MIGRATIONS = [
     updated_at TEXT NOT NULL,
     resolved_at TEXT,
     resolved_by TEXT
-  )`,
-  `CREATE TABLE IF NOT EXISTS activity_log (
+  );
+
+CREATE TABLE IF NOT EXISTS activity_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     company_id TEXT NOT NULL,
     actor_type TEXT NOT NULL,
@@ -136,8 +120,9 @@ export const SQL_MIGRATIONS = [
     entity_id TEXT,
     details TEXT,
     created_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS cost_events (
+  );
+
+CREATE TABLE IF NOT EXISTS cost_events (
     id TEXT PRIMARY KEY,
     company_id TEXT NOT NULL REFERENCES companies(id),
     agent_id TEXT NOT NULL REFERENCES agents(id),
@@ -147,47 +132,20 @@ export const SQL_MIGRATIONS = [
     output_tokens INTEGER DEFAULT 0,
     cost_cents INTEGER DEFAULT 0,
     created_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS heartbeat_runs (
+  );
+
+CREATE TABLE IF NOT EXISTS heartbeat_runs (
     id TEXT PRIMARY KEY,
     agent_id TEXT NOT NULL REFERENCES agents(id),
     company_id TEXT NOT NULL REFERENCES companies(id),
     status TEXT NOT NULL,
     started_at TEXT NOT NULL,
     finished_at TEXT
-  )`,
-  `CREATE TABLE IF NOT EXISTS agent_api_keys (
+  );
+
+CREATE TABLE IF NOT EXISTS agent_api_keys (
     id TEXT PRIMARY KEY,
     agent_id TEXT NOT NULL REFERENCES agents(id),
     key_hash TEXT NOT NULL,
     created_at TEXT NOT NULL
-  )`,
-];
-
-function ensureColumn(db: DatabaseType.Database, table: string, column: string, definition: string) {
-  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
-  const exists = rows.some((row) => row.name === column);
-  if (!exists) {
-    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
-  }
-}
-
-export function migrate(dbPath?: string): void {
-  const db = getDb(dbPath);
-  for (const sql of SQL_MIGRATIONS) {
-    db.exec(sql);
-  }
-  ensureColumn(db, "companies", "budget_cents", "INTEGER");
-  ensureColumn(db, "agents", "budget_cents", "INTEGER");
-  ensureColumn(db, "action_nodes", "retry_count", "INTEGER NOT NULL DEFAULT 0");
-  ensureColumn(db, "action_nodes", "max_retries", "INTEGER NOT NULL DEFAULT 1");
-  ensureColumn(db, "action_nodes", "last_handoff", "TEXT");
-  ensureColumn(db, "action_nodes", "last_error", "TEXT");
-  ensureColumn(db, "action_nodes", "adapter_run_id", "TEXT");
-  ensureColumn(db, "action_nodes", "adapter_status", "TEXT");
-  ensureColumn(db, "action_nodes", "executor_agent_id", "TEXT");
-  ensureColumn(db, "action_nodes", "invoked_at", "TEXT");
-  ensureColumn(db, "action_nodes", "completed_at", "TEXT");
-  ensureColumn(db, "company_templates", "version", "TEXT NOT NULL DEFAULT '1.0.0'");
-  ensureColumn(db, "cost_events", "billing_code", "TEXT");
-}
+  );

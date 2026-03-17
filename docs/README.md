@@ -10,6 +10,7 @@
 | 规格 | [CompanySpec](opc_companyspec_integrated.md) | COO、Agent 实现 | 公司身份、目标、受众、产物、质量标准 |
 | 规格 | [AgentSpec](opc_agentspec_integrated.md) | Agent 实现、适配器 | Agent 定义、Handoff 协议 |
 | 技术 | [技术架构](opc_technical_architecture.md) | 架构师、工程师 | 系统分层、数据模型、接口、调度 |
+| 交付 | [研发审计与修订计划](opc_delivery_audit_and_revision_plan.md) | 产品、研发、Agent | docs 对照、差距分析、迭代计划 |
 
 ## 核心概念（Agent 可解析）
 

@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - cursor/**
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -r run build
+
+      - name: Start API
+        run: |
+          HELM_DATA_DIR=/tmp/helm-ci-data pnpm --filter @helm/api exec tsx src/index.ts > /tmp/helm-api.log 2>&1 &
+          echo $! > /tmp/helm-api.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API failed to start"
+          cat /tmp/helm-api.log
+          exit 1
+
+      - name: API E2E regression
+        env:
+          HELM_API_URL: http://localhost:3000
+        run: pnpm --filter @helm/api run test:e2e
+
+      - name: API contract checks
+        env:
+          HELM_API_URL: http://localhost:3000
+        run: pnpm --filter @helm/api run test:contract
