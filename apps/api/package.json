@@ -11,6 +11,7 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "@helm/db": "workspace:*",
+    "@helm/scheduler": "workspace:*",
     "@helm/shared": "workspace:*",
     "hono": "^4.6.0",
     "@hono/node-server": "^1.13.0",

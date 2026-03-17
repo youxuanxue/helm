@@ -1,4 +1,5 @@
 import { apiPost } from "../lib/client";
+import { validateSafeId } from "@helm/shared";
 
 export async function cmdInit(opts: {
   template?: string;
@@ -8,6 +9,7 @@ export async function cmdInit(opts: {
 }): Promise<void> {
   let body: Record<string, unknown>;
   if (opts.template) {
+    validateSafeId(opts.template, "template-id");
     body = { template_id: opts.template };
   } else {
     if (!opts.name || !opts.mission || !opts.targetAudience) {

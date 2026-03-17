@@ -6,13 +6,17 @@ export function Demand() {
   const { id } = useParams<{ id: string }>();
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [lastApprovalId, setLastApprovalId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !text.trim()) return;
     setSubmitting(true);
     try {
-      await api.demands.create(id, { demand: text.trim() });
+      const result = (await api.demands.create(id, { demand: text.trim() })) as {
+        approval_id?: string;
+      };
+      setLastApprovalId(result.approval_id ?? null);
       setText("");
     } finally {
       setSubmitting(false);
@@ -40,6 +44,14 @@ export function Demand() {
         >
           {submitting ? "提交中…" : "提交"}
         </button>
+        {lastApprovalId && (
+          <Link
+            to={`/company/${id}/approval/${lastApprovalId}`}
+            className="ml-3 text-sm text-helm-accent hover:underline"
+          >
+            查看待审批任务图 →
+          </Link>
+        )}
       </form>
     </div>
   );

@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, writeFileSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync, renameSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -40,10 +40,10 @@ export function getConfig(): HelmConfig {
 }
 
 export function writeConfig(updates: Partial<HelmConfig>): void {
+  mkdirSync(CONFIG_DIR, { recursive: true });
   const config = { ...getConfig(), ...updates };
   const tmp = CONFIG_FILE + ".tmp." + Date.now();
-  writeFileSync(tmp, JSON.stringify(config, null, 2));
-  const { renameSync } = await import("node:fs");
+  writeFileSync(tmp, JSON.stringify(config, null, 2), "utf-8");
   renameSync(tmp, CONFIG_FILE);
   _config = config;
 }
