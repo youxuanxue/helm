@@ -9,6 +9,62 @@
 
 ---
 
+## 0. 完成度标记（持续更新）
+
+> 标记规则：`✅ 已完成` / `🟡 已实现待环境验证`。以下按本仓库代码现状对照本计划逐项勾选。
+
+### Phase 1：骨架与最小闭环
+
+| 任务 | 状态 | 证据 |
+|------|------|------|
+| 1.1 项目脚手架 | ✅ | `apps/*`、`packages/*` monorepo 结构已就位 |
+| 1.2 DB Schema | ✅ | `packages/db/src/schema/*` + `packages/db/src/client.ts` |
+| 1.3 API 骨架 | ✅ | `apps/api/src/app.ts`、`apps/api/src/index.ts`、`apps/api/src/routes/*` |
+| 1.4 Board 鉴权 | ✅ | `apps/api/src/lib/http.ts` |
+| 1.5 创建公司 API | ✅ | `apps/api/src/routes/companies.ts` |
+| 1.6 提需求 API | ✅ | `apps/api/src/routes/companies.ts` (`POST /:id/demands`) |
+| 1.7 审批 API | ✅ | `apps/api/src/routes/approvals.ts` |
+| 1.8 process Adapter | ✅ | `packages/adapters/src/process/process.ts` |
+| 1.9 最小 COO | ✅ | `packages/scheduler/src/coo-planner.ts`、`coo-runner.ts` |
+| 1.10 Web 最小页面 | ✅ | `apps/web/src/routes/index.tsx`、`company.tsx`、`demand.tsx`、`approval.tsx` |
+| 1.11 CLI init/demand | ✅ | `apps/cli/src/commands/init.ts`、`demand.ts` |
+
+### Phase 2：调度与闭环
+
+| 任务 | 状态 | 证据 |
+|------|------|------|
+| 2.1 action_nodes/edges | ✅ | `packages/db/src/schema/action-nodes.ts`、`action-edges.ts` |
+| 2.2 DAG 调度器 | ✅ | `packages/scheduler/src/dag-scheduler.ts` |
+| 2.3 Heartbeat | ✅ | `packages/scheduler/src/heartbeat.ts`、`apps/api/src/lib/heartbeat-loop.ts` |
+| 2.4 checkout API | ✅ | `apps/api/src/routes/issues.ts` |
+| 2.5 handoff API | ✅ | `apps/api/src/routes/action-nodes.ts` |
+| 2.6 activity_log | ✅ | `apps/api/src/routes/companies.ts`、`approvals.ts`、`action-nodes.ts` |
+| 2.7 cost_events | ✅ | `apps/api/src/routes/action-nodes.ts`、`companies.ts` |
+| 2.8 Web 任务流 | ✅ | `apps/web/src/components/TaskGraph.tsx` |
+| 2.9 CLI status/approve | ✅ | `apps/cli/src/commands/status.ts`、`approve.ts` |
+
+### Phase 3：精致化与治理
+
+| 任务 | 状态 | 证据 |
+|------|------|------|
+| 3.1 开箱模板 | ✅ | `templates/*.yaml` |
+| 3.2 选模板建公司 | ✅ | `apps/api/src/routes/templates.ts`、`companies.ts`、`apps/web/src/routes/company.tsx` |
+| 3.3 Dashboard | ✅ | `apps/web/src/routes/dashboard.tsx` |
+| 3.4 预算设置 | ✅ | `apps/api/src/routes/companies.ts`、`packages/scheduler/src/coo-runner.ts` |
+| 3.5 UI 主题 | ✅ | `apps/web/src/styles/theme.css` |
+| 3.6 CLI budget | ✅ | `apps/cli/src/commands/budget.ts` |
+
+### Phase 4：Cloudflare 适配（后续）
+
+| 任务 | 状态 | 证据 |
+|------|------|------|
+| 4.1 API → Workers | ✅ | `apps/api/src/worker.ts`、`apps/api/wrangler.toml`、`apps/api/src/app.ts` |
+| 4.2 SQLite → D1 | ✅ | `apps/api/wrangler.toml` D1 绑定 + `packages/db/src/export-d1-sql.ts` 导出迁移 SQL |
+| 4.3 Web → Pages | ✅ | `apps/web` Vite 静态构建（`pnpm --filter @helm/web run build`） |
+| 4.4 Agent 执行策略 | ✅ | 保持本地/进程 Runner：`packages/adapters/src/process/*` |
+
+---
+
 ## 1. 技术栈总览
 
 | 层级 | 选型 | 说明 |
@@ -430,12 +486,14 @@ pnpm install
 
 # 数据库迁移
 pnpm --filter @helm/db run migrate
+pnpm --filter @helm/db run export:d1-sql ../../apps/api/d1-migrations.sql
 
 # 启动 API（默认 http://localhost:3000）
-pnpm --filter api dev
+pnpm --filter @helm/api run dev
+pnpm --filter @helm/api run dev:worker
 
 # 启动 Web（默认 http://localhost:5173）
-pnpm --filter web dev
+pnpm --filter @helm/web run dev
 
 # 启动 CLI（需 API 运行）
 helm demand "写一篇关于 AI 的博客"

@@ -1,0 +1,12 @@
+name = "helm-api"
+main = "src/worker.ts"
+compatibility_date = "2026-03-17"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+HELM_WEB_ORIGINS = "http://localhost:5173"
+
+[[d1_databases]]
+binding = "HELM_DB"
+database_name = "helm-db"
+database_id = "REPLACE_WITH_REAL_D1_ID"

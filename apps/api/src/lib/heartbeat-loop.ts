@@ -12,18 +12,35 @@ const loops = new Map<string, LoopState>();
 export function startHeartbeatLoop(
   companyId: string,
   intervalMs: number,
-  runCycle: () => CooCycleResult,
+  runCycle: () => Promise<CooCycleResult>,
 ): { started: boolean; interval_ms: number } {
   stopHeartbeatLoop(companyId);
 
   const state: LoopState = {
-    timer: setInterval(() => {
+    timer: setInterval(async () => {
       if (state.running) {
         return;
       }
       state.running = true;
       try {
-        state.lastResult = runCycle();
+        state.lastResult = await runCycle();
+      } catch (error) {
+        state.lastResult = {
+          run_id: "heartbeat-loop-error",
+          company_id: companyId,
+          status: "failed",
+          scheduled_node_ids: [],
+          touched_issue_ids: [],
+          node_state_summary: {
+            pending: 0,
+            running: 0,
+            succeed: 0,
+            failed: 0,
+            cancelled: 0,
+            timeout: 0,
+          },
+          message: error instanceof Error ? error.message : "Unknown heartbeat loop error",
+        };
       } finally {
         state.running = false;
       }

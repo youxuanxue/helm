@@ -5,21 +5,26 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:worker": "wrangler dev",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "deploy:worker": "wrangler deploy",
+    "test:e2e": "node scripts/e2e-regression.mjs",
+    "test:contract": "node scripts/contract-checks.mjs"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0",
     "@helm/db": "workspace:*",
     "@helm/scheduler": "workspace:*",
     "@helm/shared": "workspace:*",
-    "hono": "^4.6.0",
     "@hono/node-server": "^1.13.0",
+    "hono": "^4.6.0",
+    "js-yaml": "^4.1.0",
     "yaml": "^2.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "wrangler": "^4.74.0"
   }
 }

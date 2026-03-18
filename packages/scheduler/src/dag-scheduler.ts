@@ -50,7 +50,14 @@ export function scheduleRunnableNodes(
   for (const node of runnable) {
     db.prepare(
       `UPDATE action_nodes
-       SET status = 'running', heartbeat_run_id = ?, updated_at = ?
+       SET status = 'running',
+           heartbeat_run_id = ?,
+           adapter_run_id = NULL,
+           adapter_status = NULL,
+           executor_agent_id = NULL,
+           invoked_at = NULL,
+           completed_at = NULL,
+           updated_at = ?
        WHERE id = ? AND status = 'pending'`
     ).run(heartbeatRunId, now, node.id);
     scheduledNodeIds.push(node.id);
